@@ -9,11 +9,7 @@
 	</ItemGroup>
 	
 	<Target Name="Build" DependsOnTargets="ExtractManifest">
-
-		<Message Text="%(Entry.Identity): %(Entry.Name) (updated: %(Entry.Updated), v%(Entry.Version) - %(Entry.Icon))" Importance="high" />
-
-		<GenerateFeed Id="MobileEssentials" Title="Mobile Essentials Gallery" FeedFile="feed.atom" Entries="@(Entry)" /> 
-		
+		<GenerateFeed Id="MobileEssentials" Title="Mobile Essentials Gallery" FeedFile="feed.atom" Entries="@(Entry)" /> 		
 	</Target>
 
 	<Target Name="ExtractManifest" Inputs="@(Vsix)" Outputs="@(Vsix -> '%(RelativeDir)%(FileName).vsixmanifest')">
