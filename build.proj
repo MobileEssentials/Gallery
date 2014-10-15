@@ -1,0 +1,206 @@
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<PropertyGroup>
+		<Zip>Lib\7za.exe</Zip>
+	</PropertyGroup>
+	
+	<ItemGroup>
+		<Vsix Include="Vsix\*.vsix" />
+	</ItemGroup>
+	
+	<Target Name="Build" DependsOnTargets="ExtractManifest">
+
+		<Message Text="%(Entry.Identity): %(Entry.Name) (updated: %(Entry.Updated), v%(Entry.Version) - %(Entry.Icon))" Importance="high" />
+
+		<GenerateFeed Id="MobileEssentials" Title="Mobile Essentials Gallery" FeedFile="feed.atom" Entries="@(Entry)" /> 
+		
+	</Target>
+
+	<Target Name="ExtractManifest" Inputs="@(Vsix)" Outputs="@(Vsix -> '%(RelativeDir)%(FileName).vsixmanifest')">
+
+		<Exec Command="$(Zip) e -y -oVsix @(Vsix) extension.vsixmanifest > Lib\null" />
+
+		<Message Importance="high" Text="$(Error)" />
+		
+		<PropertyGroup>
+			<Vsix2011>&lt;Namespace Prefix='vs' Uri='http://schemas.microsoft.com/developer/vsx-schema/2011'/&gt;</Vsix2011>
+			<Vsix2010>&lt;Namespace Prefix='vs' Uri='http://schemas.microsoft.com/developer/vsx-schema/2010'/&gt;</Vsix2010>
+		</PropertyGroup>
+
+		<XmlPeek Namespaces="$(Vsix2011)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:PackageManifest/vs:Metadata/vs:Identity/@Id">
+			<Output TaskParameter="Result" PropertyName="Id" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2010)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:Vsix/vs:Identifier/@Id"
+				 Condition="'$(Id)' == ''">
+			<Output TaskParameter="Result" PropertyName="Id" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2011)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:PackageManifest/vs:Metadata/vs:Identity/@Version">
+			<Output TaskParameter="Result" PropertyName="Version" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2010)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:Vsix/vs:Identifier/vs:Version/text()"
+				 Condition="'$(Version)' == ''">
+			<Output TaskParameter="Result" PropertyName="Version" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2011)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:PackageManifest/vs:Metadata/vs:Identity/@Publisher">
+			<Output TaskParameter="Result" PropertyName="Author" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2010)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:Vsix/vs:Identifier/vs:Author/text()"
+				 Condition="'$(Author)' == ''">
+			<Output TaskParameter="Result" PropertyName="Author" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2011)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:PackageManifest/vs:Metadata/vs:DisplayName/text()">
+			<Output TaskParameter="Result" PropertyName="Name" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2010)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:Vsix/vs:Identifier/vs:Name/text()"
+				 Condition="'$(Name)' == ''">
+			<Output TaskParameter="Result" PropertyName="Name" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2011)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:PackageManifest/vs:Metadata/vs:Description/text()">
+			<Output TaskParameter="Result" PropertyName="Description" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2010)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:Vsix/vs:Identifier/vs:Description/text()"
+				 Condition="'$(Description)' == ''">
+			<Output TaskParameter="Result" PropertyName="Description" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2011)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:PackageManifest/vs:Metadata/vs:Icon/text()">
+			<Output TaskParameter="Result" PropertyName="Icon" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2010)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:Vsix/vs:Identifier/vs:Icon/text()"
+				 Condition="'$(Icon)' == ''">
+			<Output TaskParameter="Result" PropertyName="Icon" />
+		</XmlPeek>
+
+		<!-- If we got an icon, move it to the final destination alongside the vsix -->
+		
+		<PropertyGroup Condition="'$(Icon)' != ''">
+			<IconExtension>$([System.IO.Path]::GetExtension($(Icon)))</IconExtension>
+			<IconFile>@(Vsix -> '%(FileName)$(IconExtension)')</IconFile>
+		</PropertyGroup>
+		
+		<Move SourceFiles="Vsix\extension.vsixmanifest" DestinationFiles="@(Vsix -> '%(RelativeDir)%(FileName).vsixmanifest')" />
+
+		<Exec Command="$(Zip) e -y -oVsix @(Vsix) $(Icon) > Lib\null" Condition="'$(Icon)' != ''" />
+
+		<Move SourceFiles="Vsix\$(Icon)" DestinationFiles="Vsix\$(IconFile)" Condition="'$(Icon)' != ''" />
+
+		<ItemGroup>
+			<Entry Include="$(Id)">
+				<Author>$(Author)</Author>
+				<Name>$(Name)</Name>
+				<Description>$(Description)</Description>
+				<Icon>Vsix/$(IconFile)</Icon>
+				<Version>$(Version)</Version>
+				<Updated>@(Vsix -> '%(ModifiedTime)')</Updated>
+				<Payload>@(Vsix -> '%(Filename)%(Extension)')</Payload>
+			</Entry>
+		</ItemGroup>
+		
+	</Target>
+
+	<PropertyGroup>
+		<CodeTaskAssembly>$(MSBuildToolsPath)\Microsoft.Build.Tasks.v$(MSBuildToolsVersion).dll</CodeTaskAssembly>
+		<!-- In VS2013, the assembly contains the VS version. -->
+		<CodeTaskAssembly Condition="!Exists('$(CodeTaskAssembly)')">$(MSBuildToolsPath)\Microsoft.Build.Tasks.v$(VisualStudioVersion).dll</CodeTaskAssembly>
+		<!-- In VS2014+, the assembly was renamed. -->
+		<CodeTaskAssembly Condition="!Exists('$(CodeTaskAssembly)')">$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll</CodeTaskAssembly>
+	</PropertyGroup>
+
+	<UsingTask TaskName="GenerateFeed" TaskFactory="CodeTaskFactory" AssemblyFile="$(CodeTaskAssembly)">
+		<ParameterGroup>
+			<Id Required="true" />
+			<Title Required="true" />
+			<FeedFile Required="true" />
+			<Entries ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+		</ParameterGroup>
+		<Task>
+			<Reference Include="Microsoft.Build.Utilities.v$(MSBuildToolsVersion)" />
+			<Reference Include="System.Xml.Linq" />
+			<Reference Include="System.Xml" />
+			<Using Namespace="System.Collections.Generic" />
+			<Using Namespace="System.Globalization" />
+			<Using Namespace="System.IO" />
+			<Using Namespace="System.Xml" />
+			<Using Namespace="System.Xml.Linq" />
+			<Using Namespace="System.Linq" />
+			<Code Type="Fragment" Language="cs">
+				<![CDATA[
+			var ns = XNamespace.Get ("http://www.w3.org/2005/Atom");
+			var vsx = XNamespace.Get ("http://schemas.microsoft.com/developer/vsx-syndication-schema/2010");
+
+			foreach (var entry in Entries) {
+				entry.SetMetadata ("Updated", DateTime.ParseExact (entry.GetMetadata ("Updated"), "yyyy-MM-dd HH:mm:ss.fffffff", CultureInfo.CurrentCulture).ToUniversalTime ().ToString ("o"));
+			}
+
+			var sorted = Entries.OrderByDescending (i => i.GetMetadata ("Updated")).ToList ();
+
+			var doc = new XDocument (
+				new XElement (ns + "feed",
+					new XElement (ns + "title", Title),
+					new XElement (ns + "id", Id),
+					new XElement (ns + "updated", DateTimeOffset.UtcNow.ToString ("o")),
+					sorted.Select (entry =>
+						new XElement (ns + "entry",
+							new XElement (ns + "id", entry.ItemSpec),
+							new XElement (ns + "title", entry.GetMetadata ("Name")),
+							new XElement (ns + "summary", entry.GetMetadata ("Description")),
+							new XElement (ns + "published", entry.GetMetadata ("Updated")),
+							new XElement (ns + "updated", entry.GetMetadata ("Updated")),
+							new XElement (ns + "author", new XElement (ns + "name", entry.GetMetadata ("Author"))),
+							new XElement (ns + "link",
+								new XAttribute ("rel", "icon"),
+								new XAttribute ("href", entry.GetMetadata ("Icon"))),
+							new XElement (ns + "content",
+								new XAttribute ("type", "application/octet-stream"),
+								new XAttribute ("src", entry.GetMetadata ("Payload"))),
+							new XElement (vsx + "Vsix",
+								new XElement (vsx + "Id", entry.ItemSpec),
+								new XElement (vsx + "Version", entry.GetMetadata ("Version")),
+								new XElement (vsx + "References")
+							)
+						)
+					)
+				)
+			);
+
+			doc.Save (FeedFile);
+]]>
+			</Code>
+		</Task>
+	</UsingTask>
+
+</Project>

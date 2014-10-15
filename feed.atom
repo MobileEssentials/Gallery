@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Mobile Essentials Gallery</title>
+  <id>MobileEssentials</id>
+  <updated>2014-10-15T22:15:15.2861970+00:00</updated>
+  <entry>
+    <id>MobileEssentials.Gallery</id>
+    <title>Mobile Essentials Gallery</title>
+    <summary>Installs the Mobile Essentials Gallery to access the latest and greatest productivity enhancements for mobile developers.</summary>
+    <published>2014-10-15T18:02:23.4423139Z</published>
+    <updated>2014-10-15T18:02:23.4423139Z</updated>
+    <author>
+      <name>Mobile Essentials</name>
+    </author>
+    <link rel="icon" href="Vsix/MobileEssentials.ico" />
+    <content type="application/octet-stream" src="MobileEssentials.vsix" />
+    <Vsix xmlns="http://schemas.microsoft.com/developer/vsx-syndication-schema/2010">
+      <Id>MobileEssentials.Gallery</Id>
+      <Version>1.0</Version>
+      <References />
+    </Vsix>
+  </entry>
+</feed>
