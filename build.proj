@@ -102,17 +102,39 @@
 		</XmlPeek>
 
 		<!-- If we got an icon, move it to the final destination alongside the vsix -->
-		
 		<PropertyGroup Condition="'$(Icon)' != ''">
 			<IconExtension>$([System.IO.Path]::GetExtension($(Icon)))</IconExtension>
 			<IconFile>@(Vsix -> '%(FileName)$(IconExtension)')</IconFile>
 		</PropertyGroup>
-		
+
+
+		<XmlPeek Namespaces="$(Vsix2011)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:PackageManifest/vs:Metadata/vs:PreviewImage/text()">
+			<Output TaskParameter="Result" PropertyName="PreviewImage" />
+		</XmlPeek>
+
+		<XmlPeek Namespaces="$(Vsix2010)"
+				 XmlInputPath="Vsix\extension.vsixmanifest"
+				 Query="/vs:Vsix/vs:Identifier/vs:PreviewImage/text()"
+				 Condition="'$(PreviewImage)' == ''">
+			<Output TaskParameter="Result" PropertyName="PreviewImage" />
+		</XmlPeek>
+
+		<!-- If we got a preview image, move it to the final destination alongside the vsix -->
+
+		<PropertyGroup Condition="'$(PreviewImage)' != ''">
+			<PreviewExtension>$([System.IO.Path]::GetExtension($(PreviewImage)))</PreviewExtension>
+			<PreviewFile>@(Vsix -> '%(FileName)$(PreviewExtension)')</PreviewFile>
+		</PropertyGroup>
+
 		<Move SourceFiles="Vsix\extension.vsixmanifest" DestinationFiles="@(Vsix -> '%(RelativeDir)%(FileName).vsixmanifest')" />
 
 		<Exec Command="$(Zip) e -y -oVsix @(Vsix) $(Icon) > Lib\null" Condition="'$(Icon)' != ''" />
+		<Exec Command="$(Zip) e -y -oVsix @(Vsix) $(PreviewImage) > Lib\null" Condition="'$(PreviewImage)' != ''" />
 
 		<Move SourceFiles="Vsix\$(Icon)" DestinationFiles="Vsix\$(IconFile)" Condition="'$(Icon)' != ''" />
+		<Move SourceFiles="Vsix\$(PreviewImage)" DestinationFiles="Vsix\$(PreviewFile)" Condition="'$(PreviewImage)' != ''" />
 
 		<ItemGroup>
 			<Entry Include="$(Id)">
@@ -120,9 +142,10 @@
 				<Name>$(Name)</Name>
 				<Description>$(Description)</Description>
 				<Icon>Vsix/$(IconFile)</Icon>
+				<Preview>Vsix/$(PreviewFile)</Preview>
 				<Version>$(Version)</Version>
 				<Updated>@(Vsix -> '%(ModifiedTime)')</Updated>
-				<Payload>Vsix/@(Vsix -> '%(Filename)%(Extension)')</Payload>
+				<Payload>Vsix/@(Vsix -> '%(Filename)%(Extension)')?t=$(Name) (v$(Version))</Payload>
 			</Entry>
 		</ItemGroup>
 		
@@ -180,6 +203,9 @@
 							new XElement (ns + "link",
 								new XAttribute ("rel", "icon"),
 								new XAttribute ("href", entry.GetMetadata ("Icon"))),
+							new XElement (ns + "link",
+								new XAttribute ("rel", "previewimage"),
+								new XAttribute ("href", entry.GetMetadata ("Preview"))),
 							new XElement (ns + "content",
 								new XAttribute ("type", "application/octet-stream"),
 								new XAttribute ("src", entry.GetMetadata ("Payload"))),

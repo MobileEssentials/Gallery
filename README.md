@@ -16,7 +16,10 @@ Once the gallery is set up, you can go to Visual Studio's `Tools | Extensions an
 ![Using the Gallery](http://gallery.mobileessentials.org/img/using.png)
 
 
-Updates will also show in this same window, under the respective category `Updates > Mobile Essentials`.
+Updates also show in this same window, under the respective category `Updates > Mobile Essentials`:
+
+![Using the Gallery](http://gallery.mobileessentials.org/img/update.png)
+
 
 
 
