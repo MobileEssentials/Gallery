@@ -12,7 +12,7 @@
 		<GenerateFeed Id="MobileEssentials" Title="Mobile Essentials Gallery" FeedFile="feed.atom" Entries="@(Entry)" /> 		
 	</Target>
 
-	<Target Name="ExtractManifest" Inputs="@(Vsix)" Outputs="@(Vsix -> '%(RelativeDir)%(FileName).vsixmanifest')">
+	<Target Name="ExtractManifest" Inputs="%(Vsix.Identity)" Outputs="@(Vsix -> '%(RelativeDir)%(FileName).vsixmanifest')">
 
 		<Exec Command="$(Zip) e -y -oVsix @(Vsix) extension.vsixmanifest > Lib\null" />
 
@@ -133,8 +133,8 @@
 		<Exec Command="$(Zip) e -y -oVsix @(Vsix) $(Icon) > Lib\null" Condition="'$(Icon)' != ''" />
 		<Exec Command="$(Zip) e -y -oVsix @(Vsix) $(PreviewImage) > Lib\null" Condition="'$(PreviewImage)' != ''" />
 
-		<Move SourceFiles="Vsix\$(Icon)" DestinationFiles="Vsix\$(IconFile)" Condition="'$(Icon)' != ''" />
-		<Move SourceFiles="Vsix\$(PreviewImage)" DestinationFiles="Vsix\$(PreviewFile)" Condition="'$(PreviewImage)' != ''" />
+		<Move SourceFiles="Vsix\$(Icon)" DestinationFiles="Vsix\$(IconFile)" Condition="'$(Icon)' != '' and Exists('Vsix\$(Icon)')" />
+		<Move SourceFiles="Vsix\$(PreviewImage)" DestinationFiles="Vsix\$(PreviewFile)" Condition="'$(PreviewImage)' != '' and Exists('Vsix\$(PreviewImage)')" />
 
 		<ItemGroup>
 			<Entry Include="$(Id)">
@@ -145,7 +145,7 @@
 				<Preview>Vsix/$(PreviewFile)</Preview>
 				<Version>$(Version)</Version>
 				<Updated>@(Vsix -> '%(ModifiedTime)')</Updated>
-				<Payload>http://vsmobileessentials.azurewebsites.net/Vsix/@(Vsix -> '%(Filename)%(Extension)')?t=$(Name) (v$(Version))</Payload>
+				<Payload>http://vsmobileessentials.azurewebsites.net/Vsix/@(Vsix -> '%(Filename)%(Extension)')?dt=$(Name) (v$(Version))</Payload>
 			</Entry>
 		</ItemGroup>
 		
