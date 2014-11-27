@@ -7,7 +7,7 @@ All extensions are provided free to use and experiment. We welcome your feedback
 
 ## Installing
 
-In order to get the new gallery in your Visual Studio 2012 (or later), open `Tools | Options` and configure the page `Environment > Extension Manager` as follows:
+In order to get the new gallery in your Visual Studio 2012 (or later), open `Tools | Options` and configure the page `Environment > Extension Manager` as follows, using the gallery url `http://gallery.mobileessentials.org/feed.atom`:
 
 ![Gallery Setup](http://gallery.mobileessentials.org/img/setup.png)
 
