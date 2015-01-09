@@ -9,15 +9,17 @@
 	</ItemGroup>
 	
 	<Target Name="Build" DependsOnTargets="ExtractManifest">
+		<Message Text="Generating gallery feed containing:" Importance="high" />
+		<Message Text="    %(Entry.Identity)" Importance="high" />
 		<GenerateFeed Id="MobileEssentials" Title="Mobile Essentials Gallery" FeedFile="feed.atom" Entries="@(Entry)" /> 		
 	</Target>
 
-	<Target Name="ExtractManifest" Inputs="%(Vsix.Identity)" Outputs="@(Vsix -> '%(RelativeDir)%(FileName).vsixmanifest')">
+	<Target Name="ExtractManifest" Inputs="@(Vsix)" Outputs="%(Identity)--BATCH">
+
+		<Message Text="Processing @(Vsix)" Importance="high" />
 
 		<Exec Command="$(Zip) e -y -oVsix @(Vsix) extension.vsixmanifest > Lib\null" />
 
-		<Message Importance="high" Text="$(Error)" />
-		
 		<PropertyGroup>
 			<Vsix2011>&lt;Namespace Prefix='vs' Uri='http://schemas.microsoft.com/developer/vsx-schema/2011'/&gt;</Vsix2011>
 			<Vsix2010>&lt;Namespace Prefix='vs' Uri='http://schemas.microsoft.com/developer/vsx-schema/2010'/&gt;</Vsix2010>
@@ -152,11 +154,11 @@
 	</Target>
 
 	<PropertyGroup>
-		<CodeTaskAssembly>$(MSBuildToolsPath)\Microsoft.Build.Tasks.v$(MSBuildToolsVersion).dll</CodeTaskAssembly>
+		<CodeTaskAssembly Condition="'$(MSBuildAssemblyVersion)' == ''">$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll</CodeTaskAssembly>
 		<!-- In VS2013, the assembly contains the VS version. -->
-		<CodeTaskAssembly Condition="!Exists('$(CodeTaskAssembly)')">$(MSBuildToolsPath)\Microsoft.Build.Tasks.v$(VisualStudioVersion).dll</CodeTaskAssembly>
-		<!-- In VS2014+, the assembly was renamed. -->
-		<CodeTaskAssembly Condition="!Exists('$(CodeTaskAssembly)')">$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll</CodeTaskAssembly>
+		<CodeTaskAssembly Condition="'$(MSBuildAssemblyVersion)' == '12.0'">$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll</CodeTaskAssembly>
+		<!-- In VS2015+, the assembly was renamed, hopefully this will be the last condition! -->
+		<CodeTaskAssembly Condition="'$(MSBuildAssemblyVersion)' != '' and '$(MSBuildAssemblyVersion)' &gt;= '14.0'">$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll</CodeTaskAssembly>
 	</PropertyGroup>
 
 	<UsingTask TaskName="GenerateFeed" TaskFactory="CodeTaskFactory" AssemblyFile="$(CodeTaskAssembly)">
@@ -167,7 +169,6 @@
 			<Entries ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
 		</ParameterGroup>
 		<Task>
-			<Reference Include="Microsoft.Build.Utilities.v$(MSBuildToolsVersion)" />
 			<Reference Include="System.Xml.Linq" />
 			<Reference Include="System.Xml" />
 			<Using Namespace="System.Collections.Generic" />
