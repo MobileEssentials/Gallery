@@ -147,7 +147,7 @@
 				<Preview>Vsix/$(PreviewFile)</Preview>
 				<Version>$(Version)</Version>
 				<Updated>@(Vsix -> '%(ModifiedTime)')</Updated>
-				<Payload>http://vsmobileessentials.azurewebsites.net/Vsix/@(Vsix -> '%(Filename)%(Extension)')?dt=$(Name) (v$(Version))</Payload>
+				<Payload>http://gallery.mobileessentials.org/Vsix/@(Vsix -> '%(Filename)%(Extension)')?dt=$(Name) (v$(Version))</Payload>
 			</Entry>
 		</ItemGroup>
 		
